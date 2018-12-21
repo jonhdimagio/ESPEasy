@@ -32,10 +32,10 @@ TaskDevicePluginConfigLong settings:
 #define PLUGIN_ID_001         1
 #define PLUGIN_NAME_001       "Switch input - Switch"
 #define PLUGIN_VALUENAME1_001 "Switch"
-#if defined(ESP8266)
+#ifdef USE_SERVO
   Servo servo1;
   Servo servo2;
-#endif
+#endif // USE_SERVO
 // Make sure the initial default is a switch (value 0)
 #define PLUGIN_001_TYPE_SWITCH 0
 #define PLUGIN_001_TYPE_DIMMER 3 // Due to some changes in previous versions, do not use 2.
@@ -362,7 +362,7 @@ boolean Plugin_001(byte function, struct EventStruct *event, String& string)
 
     case PLUGIN_TEN_PER_SECOND:
       {
-        const boolean state = Plugin_001_read_switch_state(event);
+        const int8_t state = Plugin_001_read_switch_state(event);
 
         /**************************************************************************\
         20181009 - @giig1967g: new doubleclick logic is:
@@ -624,8 +624,8 @@ boolean Plugin_001(byte function, struct EventStruct *event, String& string)
               pinMode(event->Par1, OUTPUT);
               digitalWrite(event->Par1, event->Par2);
               tempStatus.mode=PIN_MODE_OUTPUT;
-              tempStatus.state=event->Par2;
-              tempStatus.output=event->Par2;
+              // tempStatus.state=event->Par2;
+//              tempStatus.output=event->Par2;
             }
             tempStatus.command=1; //set to 1 in order to display the status in the PinStatus page
             savePortStatus(key,tempStatus);
@@ -797,7 +797,7 @@ boolean Plugin_001(byte function, struct EventStruct *event, String& string)
             {
               case 1:
                 //IRAM: doing servo stuff uses 740 bytes IRAM. (doesnt matter how many instances)
-                #if defined(ESP8266)
+                #ifdef USE_SERVO
                   //SPECIAL CASE TO ALLOW SERVO TO BE DETATTCHED AND SAVE POWER.
                   if (event->Par3 >= 9000) {
                     servo1.detach();
@@ -805,17 +805,17 @@ boolean Plugin_001(byte function, struct EventStruct *event, String& string)
                     servo1.attach(event->Par2);
                     servo1.write(event->Par3);
                   }
-                #endif
+                #endif // USE_SERVO
                 break;
               case 2:
-                #if defined(ESP8266)
+                #ifdef USE_SERVO
                 if (event->Par3 >= 9000) {
                   servo2.detach();
                 }else{
                   servo2.attach(event->Par2);
                   servo2.write(event->Par3);
                 }
-                #endif
+                #endif // USE_SERVO
                 break;
             }
             //setPinState(PLUGIN_ID_001, event->Par2, PIN_MODE_SERVO, event->Par3);
